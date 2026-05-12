@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TurnOn — Identity · Intent · Connection</title>
+<meta name="description" content="Two modes. One truth. TurnOn is the social platform built for how people actually connect — with identity in Glow, and raw intent in Shadow." />
+<meta property="og:title" content="TurnOn — Identity · Intent · Connection" />
+<meta property="og:description" content="Two modes. One truth." />
+<meta property="og:url" content="https://turnon.info" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #050505;
+    --g950: #090909;
+    --g900: #0f0f0f;
+    --g800: #1a1a1a;
+    --g700: #282828;
+    --g600: #333;
+    --g400: #666;
+    --g300: #999;
+    --g200: #c2c2c2;
+    --white: #f0f0f0;
+    --glow: #c8ff00;
+    --glow-dim: rgba(200,255,0,.07);
+    --glow-glow: rgba(200,255,0,.22);
+    --sh: #7c5cfc;
+    --sh-dim: rgba(124,92,252,.1);
+    --sh-glow: rgba(124,92,252,.28);
+    --match: #ff5f9e;
+    --match-dim: rgba(255,95,158,.1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--glow);
+    position: fixed; pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform .1s, width .25s, height .25s, background .25s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid rgba(200,255,0,.4);
+    position: fixed; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform .18s ease, width .3s, height .3s, opacity .3s;
+  }
+  .cursor.expand { width: 22px; height: 22px; }
+  .cursor-ring.expand { width: 60px; height: 60px; opacity: .5; }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: .028;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid transparent;
+    transition: border-color .4s, background .4s, padding .4s;
+  }
+  nav.scrolled {
+    background: rgba(5,5,5,.88);
+    backdrop-filter: blur(18px);
+    border-color: var(--g800);
+    padding: 13px 40px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--sh), var(--glow));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 16px; color: #000;
+    box-shadow: 0 0 20px var(--sh-glow);
+  }
+  .nav-logo-text {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 18px; color: var(--white); letter-spacing: -.02em;
+  }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a {
+    font-size: 13px; color: var(--g300); text-decoration: none;
+    font-weight: 500; transition: color .2s; letter-spacing: .01em;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--glow); color: #000;
+    border: none; padding: 10px 20px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 12px; cursor: pointer; letter-spacing: .04em;
+    box-shadow: 0 0 22px var(--glow-glow);
+    transition: transform .15s, box-shadow .15s;
+    text-decoration: none; display: inline-block;
+  }
+  .nav-cta:hover { transform: scale(1.04); box-shadow: 0 0 38px var(--glow-glow); }
+
+  /* HERO */
+  .hero {
+    min-height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 120px 24px 80px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+
+  .hero-ambient {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    filter: blur(80px); z-index: 0;
+  }
+  .amb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(200,255,0,.09) 0%, transparent 70%); top: -10%; left: 50%; transform: translateX(-50%); }
+  .amb-2 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(124,92,252,.12) 0%, transparent 70%); bottom: 0; left: -5%; }
+  .amb-3 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(255,95,158,.07) 0%, transparent 70%); bottom: 10%; right: -5%; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 20px; padding: 7px 14px;
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    color: var(--g300); letter-spacing: .14em; text-transform: uppercase;
+    margin-bottom: 32px; position: relative; z-index: 1;
+    animation: fadeUp .6s both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--glow); animation: blink 1.6s infinite;
+  }
+
+  .hero-headline {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(52px, 11vw, 110px);
+    line-height: .92; letter-spacing: -.04em;
+    position: relative; z-index: 1;
+    animation: fadeUp .65s .1s both;
+    background: linear-gradient(170deg, var(--white) 40%, var(--g400) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(15px, 2.2vw, 18px); color: var(--g300);
+    line-height: 1.75; margin-top: 22px; max-width: 520px;
+    position: relative; z-index: 1; font-weight: 300;
+    animation: fadeUp .65s .2s both;
+  }
+  .hero-sub strong { color: var(--white); font-weight: 500; }
+
+  /* Waitlist form */
+  .waitlist-form {
+    margin-top: 44px; position: relative; z-index: 1;
+    display: flex; gap: 10px; max-width: 420px; width: 100%;
+    animation: fadeUp .65s .3s both;
+  }
+  .waitlist-input {
+    flex: 1; background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 12px; padding: 14px 18px;
+    color: var(--white); font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .waitlist-input:focus {
+    border-color: var(--sh);
+    box-shadow: 0 0 0 3px var(--sh-dim);
+  }
+  .waitlist-input::placeholder { color: var(--g400); }
+  .waitlist-btn {
+    background: var(--sh); color: var(--white);
+    border: none; border-radius: 12px; padding: 14px 22px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+    cursor: pointer; white-space: nowrap; letter-spacing: .03em;
+    box-shadow: 0 0 24px var(--sh-glow); transition: transform .15s, box-shadow .15s;
+  }
+  .waitlist-btn:hover { transform: scale(1.04); box-shadow: 0 0 40px var(--sh-glow); }
+
+  .waitlist-note {
+    margin-top: 12px; font-size: 11px; color: var(--g400);
+    font-family: 'Space Mono', monospace; letter-spacing: .06em;
+    animation: fadeUp .65s .4s both; position: relative; z-index: 1;
+  }
+
+  .store-badges {
+    display: flex; gap: 12px; margin-top: 32px; justify-content: center;
+    position: relative; z-index: 1; animation: fadeUp .65s .45s both;
+    flex-wrap: wrap;
+  }
+  .store-badge {
+    display: flex; align-items: center; gap: 9px;
+    background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 12px; padding: 10px 16px; cursor: not-allowed;
+    opacity: .7; transition: opacity .2s;
+  }
+  .store-badge:hover { opacity: 1; }
+  .store-badge-icon { font-size: 20px; }
+  .store-badge-text { font-family: 'Syne', sans-serif; }
+  .store-badge-text .store-label { font-size: 9px; color: var(--g400); display: block; letter-spacing: .08em; }
+  .store-badge-text .store-name { font-size: 13px; font-weight: 700; display: block; margin-top: 1px; }
+
+  /* App preview */
+  .phone-wrap {
+    margin-top: 72px; position: relative; z-index: 1;
+    display: flex; justify-content: center; gap: 20px; align-items: flex-end;
+    animation: fadeUp .7s .5s both;
+  }
+  .phone {
+    width: 200px; border-radius: 32px;
+    background: var(--g950); border: 1px solid var(--g800);
+    overflow: hidden; position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,.8), 0 0 0 1px #1c1c1c;
+  }
+  .phone.center { width: 230px; transform: translateY(-20px); box-shadow: 0 60px 120px rgba(0,0,0,.9), 0 0 60px var(--sh-glow), 0 0 0 1px #222; }
+  .phone-screen {
+    padding: 16px 12px; min-height: 380px;
+    display: flex; flex-direction: column; position: relative;
+  }
+  .phone-notch { width: 60px; height: 4px; background: var(--g800); border-radius: 2px; margin: 0 auto 14px; }
+  .phone-mode-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'Space Mono', monospace; font-size: 7px;
+    font-weight: 700; letter-spacing: .12em;
+    border-radius: 6px; padding: 3px 8px; margin-bottom: 12px; width: fit-content;
+  }
+  .mode-glow { background: rgba(200,255,0,.12); border: 1px solid rgba(200,255,0,.3); color: var(--glow); }
+  .mode-shadow { background: rgba(124,92,252,.12); border: 1px solid rgba(124,92,252,.3); color: var(--sh); }
+
+  .phone-card {
+    background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 14px; padding: 12px; margin-bottom: 10px;
+    position: relative; overflow: hidden;
+  }
+  .phone-card-vibe { font-size: 28px; margin-bottom: 8px; display: block; }
+  .phone-card-name { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; margin-bottom: 4px; }
+  .phone-card-sub { font-size: 9px; color: var(--g400); }
+  .phone-card-bar { height: 2px; background: var(--g800); border-radius: 1px; margin-top: 10px; overflow: hidden; }
+  .phone-card-fill { height: 100%; border-radius: 1px; }
+
+  .phone-actions { display: flex; gap: 8px; justify-content: center; margin-top: auto; padding-top: 10px; }
+  .phone-action {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .pa-no { background: rgba(255,59,59,.12); border: 1px solid rgba(255,59,59,.3); }
+  .pa-yes { background: rgba(124,92,252,.18); border: 1px solid rgba(124,92,252,.4); }
+  .pa-star { background: rgba(255,204,68,.12); border: 1px solid rgba(255,204,68,.3); }
+
+  /* SECTION: MODES */
+  section { padding: 100px 24px; position: relative; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--g400);
+    text-align: center; margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(32px, 5vw, 52px); text-align: center;
+    letter-spacing: -.03em; line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    text-align: center; color: var(--g300); font-size: 15px;
+    line-height: 1.8; max-width: 520px; margin: 0 auto 60px;
+    font-weight: 300;
+  }
+
+  .modes-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; max-width: 860px; margin: 0 auto;
+  }
+  .mode-card {
+    border-radius: 22px; padding: 36px 32px; position: relative; overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+    cursor: default;
+  }
+  .mode-card:hover { transform: translateY(-6px); }
+  .mode-card.glow-card {
+    background: linear-gradient(145deg, rgba(200,255,0,.07), var(--g900));
+    border: 1px solid rgba(200,255,0,.2);
+  }
+  .mode-card.glow-card:hover { box-shadow: 0 24px 70px rgba(200,255,0,.1); }
+  .mode-card.shadow-card {
+    background: linear-gradient(145deg, rgba(124,92,252,.1), var(--g900));
+    border: 1px solid rgba(124,92,252,.25);
+  }
+  .mode-card.shadow-card:hover { box-shadow: 0 24px 70px rgba(124,92,252,.14); }
+
+  .mode-emoji { font-size: 42px; display: block; margin-bottom: 18px; }
+  .mode-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 26px; margin-bottom: 10px; letter-spacing: -.02em;
+  }
+  .glow-card .mode-title { color: var(--glow); }
+  .shadow-card .mode-title { color: var(--sh); }
+  .mode-desc { font-size: 14px; color: var(--g300); line-height: 1.8; margin-bottom: 22px; font-weight: 300; }
+  .mode-features { list-style: none; }
+  .mode-features li {
+    font-size: 12px; color: var(--g200); padding: 6px 0;
+    border-bottom: 1px solid var(--g800); display: flex; align-items: center; gap: 9px;
+    font-family: 'Space Mono', monospace;
+  }
+  .mode-features li:last-child { border-bottom: none; }
+  .feat-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .glow-dot { background: var(--glow); }
+  .shadow-dot { background: var(--sh); }
+
+  /* PHILOSOPHY */
+  .philosophy {
+    background: var(--g950); border-top: 1px solid var(--g800); border-bottom: 1px solid var(--g800);
+  }
+  .phil-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--g800); max-width: 900px; margin: 0 auto;
+    border: 1px solid var(--g800); border-radius: 18px; overflow: hidden;
+  }
+  .phil-item {
+    background: var(--g950); padding: 40px 32px;
+    text-align: center; transition: background .25s;
+  }
+  .phil-item:hover { background: var(--g900); }
+  .phil-num {
+    font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800;
+    color: var(--g800); margin-bottom: 14px; line-height: 1;
+    letter-spacing: -.04em;
+  }
+  .phil-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 16px; margin-bottom: 9px;
+  }
+  .phil-sub { font-size: 12px; color: var(--g400); line-height: 1.7; }
+
+  /* SAFETY */
+  .safety-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; max-width: 760px; margin: 0 auto;
+  }
+  .safety-item {
+    background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 16px; padding: 24px 22px;
+    display: flex; gap: 16px; align-items: flex-start;
+    transition: border-color .25s;
+  }
+  .safety-item:hover { border-color: var(--g700); }
+  .safety-icon {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    background: var(--g800); border: 1px solid var(--g700);
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+  }
+  .safety-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 5px; }
+  .safety-desc { font-size: 12px; color: var(--g400); line-height: 1.7; }
+
+  /* WAITLIST SECTION */
+  .waitlist-section {
+    text-align: center; padding: 110px 24px;
+    background: radial-gradient(ellipse at center top, rgba(124,92,252,.1) 0%, transparent 60%);
+    position: relative;
+  }
+  .waitlist-big-form {
+    display: flex; gap: 10px; max-width: 460px;
+    margin: 40px auto 0; width: 100%;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--g950); border-top: 1px solid var(--g800);
+    padding: 44px 40px; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: gap;
+  }
+  .footer-logo { display: flex; align-items: center; gap: 9px; }
+  .footer-logo-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--sh), var(--glow));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px; color: #000;
+  }
+  .footer-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .footer-links a { font-size: 12px; color: var(--g400); text-decoration: none; transition: color .2s; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-copy { font-size: 11px; color: var(--g600); font-family: 'Space Mono', monospace; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(120px);
+    background: var(--g900); border: 1px solid var(--g800);
+    border-radius: 14px; padding: 14px 22px;
+    font-size: 13px; font-weight: 500; z-index: 200;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--glow); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    nav.scrolled { padding: 11px 20px; }
+    .nav-links { display: none; }
+    .modes-grid { grid-template-columns: 1fr; }
+    .phil-grid { grid-template-columns: 1fr; }
+    .safety-grid { grid-template-columns: 1fr; }
+    .waitlist-form { flex-direction: column; }
+    .waitlist-big-form { flex-direction: column; }
+    .phone-wrap .phone:not(.center) { display: none; }
+    footer { flex-direction: column; gap: 20px; text-align: center; }
+    .footer-links { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg">You're on the list 💜</span>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">T</div>
+    <span class="nav-logo-text">TurnOn</span>
+  </a>
+  <div class="nav-links">
+    <a href="#modes">Modes</a>
+    <a href="#safety">Safety</a>
+    <a href="#waitlist">Join Waitlist</a>
+    <a href="mailto:hello@turnon.info">Contact</a>
+  </div>
+  <a href="#waitlist" class="nav-cta">Get Early Access</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-ambient amb-1"></div>
+  <div class="hero-ambient amb-2"></div>
+  <div class="hero-ambient amb-3"></div>
+
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Coming soon · Android & iOS
+  </div>
+
+  <h1 class="hero-headline">Turn<br/>On.</h1>
+
+  <p class="hero-sub">
+    Two modes. One truth.<br />
+    <strong>Glow</strong> for who you are. <strong>Shadow</strong> for what you actually want.
+  </p>
+
+  <form class="waitlist-form" onsubmit="joinWaitlist(event, 'hero-email')">
+    <input type="email" id="hero-email" class="waitlist-input" placeholder="your@email.com" required />
+    <button type="submit" class="waitlist-btn">Join Waitlist</button>
+  </form>
+
+  <p class="waitlist-note">No spam. Ever. · hello@turnon.info</p>
+
+  <div class="store-badges">
+    <div class="store-badge">
+      <div class="store-badge-icon">🤖</div>
+      <div class="store-badge-text">
+        <span class="store-label">Coming to</span>
+        <span class="store-name">Google Play</span>
+      </div>
+    </div>
+    <div class="store-badge">
+      <div class="store-badge-icon"></div>
+      <div class="store-badge-text">
+        <span class="store-label">Coming to</span>
+        <span class="store-name">App Store</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone mockups -->
+  <div class="phone-wrap">
+    <div class="phone" style="transform: rotate(-4deg) translateY(10px);">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-mode-badge mode-glow">✨ GLOW MODE</div>
+        <div class="phone-card">
+          <span class="phone-card-vibe">🌙</span>
+          <div class="phone-card-name">@nova_k</div>
+          <div class="phone-card-sub">Visual storyteller · Night creature</div>
+          <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+            <span style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.25);border-radius:20px;padding:3px 9px;font-size:8px;color:#c8ff00;font-family:'Space Mono',monospace;">4.2K followers</span>
+            <span style="background:#1a1a1a;border:1px solid #282828;border-radius:20px;padding:3px 9px;font-size:8px;color:#666;font-family:'Space Mono',monospace;">248 posts</span>
+          </div>
+        </div>
+        <div class="phone-card" style="background:rgba(200,255,0,.04);border-color:rgba(200,255,0,.15);">
+          <div class="phone-card-name" style="color:#c8ff00;">some nights you feel completely untouchable ✨</div>
+          <div class="phone-card-sub" style="margin-top:6px;">284 likes · 2m ago</div>
+        </div>
+        <div class="phone-actions">
+          <div class="phone-action" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.25);font-size:14px;">🏠</div>
+          <div class="phone-action" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.25);font-size:14px;">🔍</div>
+          <div class="phone-action" style="background:rgba(200,255,0,.2);border:1px solid rgba(200,255,0,.4);font-size:14px;">＋</div>
+          <div class="phone-action" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.25);font-size:14px;">🔔</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone center">
+      <div class="phone-screen" style="background:linear-gradient(160deg,rgba(124,92,252,.08),#090909);">
+        <div class="phone-notch"></div>
+        <div class="phone-mode-badge mode-shadow">🌑 SHADOW MODE</div>
+        <div class="phone-card" style="background:linear-gradient(145deg,rgba(124,92,252,.12),#1a1a1a);border-color:rgba(124,92,252,.3);text-align:center;padding:20px 12px;">
+          <span class="phone-card-vibe" style="font-size:44px;">🌙</span>
+          <div class="phone-card-name" style="font-size:12px;margin-bottom:4px;">Ghost_7734</div>
+          <div class="phone-card-sub">24 · 0.8km · Deep Convo</div>
+          <div class="phone-card-bar" style="margin-top:14px;"><div class="phone-card-fill" style="width:92%;background:linear-gradient(90deg,#7c5cfc,#ff5f9e);"></div></div>
+          <div style="font-size:8px;color:#7c5cfc;font-family:'Space Mono',monospace;margin-top:5px;">92% compatible</div>
+        </div>
+        <div class="phone-actions">
+          <div class="phone-action pa-no">✕</div>
+          <div class="phone-action pa-star">⭐</div>
+          <div class="phone-action pa-yes">💜</div>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:8px;color:#444;font-family:'Space Mono',monospace;">Identity hidden until mutual match</div>
+      </div>
+    </div>
+
+    <div class="phone" style="transform: rotate(4deg) translateY(10px);">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-mode-badge mode-shadow">⚡ QUICK CONNECT</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:10px 0;">
+          <div style="width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,.4),rgba(124,92,252,.08));border:2px solid rgba(124,92,252,.5);display:flex;align-items:center;justify-content:center;font-size:36px;animation:float 3s ease-in-out infinite;">🌑</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:#7c5cfc;letter-spacing:.1em;">ONE TAP · ANONYMOUS</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:13px;text-align:center;">Random Voice<br/>Connect</div>
+          <div style="display:flex;gap:5px;">
+            <div style="width:5px;height:5px;border-radius:50%;background:#7c5cfc;animation:blink 1.2s infinite;"></div>
+            <div style="width:5px;height:5px;border-radius:50%;background:#7c5cfc;animation:blink 1.2s .2s infinite;"></div>
+            <div style="width:5px;height:5px;border-radius:50%;background:#7c5cfc;animation:blink 1.2s .4s infinite;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODES -->
+<section id="modes">
+  <p class="section-label reveal">Two ecosystems</p>
+  <h2 class="section-title reveal reveal-delay-1">Built for both sides<br/>of who you are</h2>
+  <p class="section-sub reveal reveal-delay-2">Most apps ask you to choose between being social and being real. TurnOn gives you both — in one place, always separate.</p>
+
+  <div class="modes-grid">
+    <div class="mode-card glow-card reveal reveal-delay-1">
+      <span class="mode-emoji">✨</span>
+      <div class="mode-title">GLOW</div>
+      <p class="mode-desc">Your public identity. Show up as yourself. Profiles, stories, posts, reactions — the full social experience built for how Gen-Z actually lives online.</p>
+      <ul class="mode-features">
+        <li><div class="feat-dot glow-dot"></div>Stories & feed posts</li>
+        <li><div class="feat-dot glow-dot"></div>Public profiles & followers</li>
+        <li><div class="feat-dot glow-dot"></div>Explore & trending</li>
+        <li><div class="feat-dot glow-dot"></div>Reactions & comments</li>
+        <li><div class="feat-dot glow-dot"></div>Full social identity layer</li>
+      </ul>
+    </div>
+    <div class="mode-card shadow-card reveal reveal-delay-2">
+      <span class="mode-emoji">🌑</span>
+      <div class="mode-title">SHADOW</div>
+      <p class="mode-desc">Anonymous intent-based dating. No face, no name, no pretense — just what you actually want. Match on intent, not on aesthetics.</p>
+      <ul class="mode-features">
+        <li><div class="feat-dot shadow-dot"></div>Anonymous codename identity</li>
+        <li><div class="feat-dot shadow-dot"></div>Intent-first matching</li>
+        <li><div class="feat-dot shadow-dot"></div>Random voice quick connect</li>
+        <li><div class="feat-dot shadow-dot"></div>Session-limited conversations</li>
+        <li><div class="feat-dot shadow-dot"></div>Zero social validation metrics</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="philosophy" id="philosophy">
+  <p class="section-label reveal">The philosophy</p>
+  <h2 class="section-title reveal reveal-delay-1">Numbers that mean something</h2>
+  <div class="phil-grid" style="margin-top:50px;">
+    <div class="phil-item reveal reveal-delay-1">
+      <div class="phil-num">2</div>
+      <div class="phil-title">Modes. One App.</div>
+      <p class="phil-sub">Identity and intent, always separate. Switch in one tap.</p>
+    </div>
+    <div class="phil-item reveal reveal-delay-2">
+      <div class="phil-num">1h</div>
+      <div class="phil-title">Session Limit</div>
+      <p class="phil-sub">Every Shadow conversation expires. Urgency creates authenticity.</p>
+    </div>
+    <div class="phil-item reveal reveal-delay-3">
+      <div class="phil-num">0</div>
+      <div class="phil-title">Fake Promises</div>
+      <p class="phil-sub">No fake likes. No pay-to-connect manipulation. Just real interaction.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SAFETY -->
+<section id="safety">
+  <p class="section-label reveal">Built responsibly</p>
+  <h2 class="section-title reveal reveal-delay-1">Safety is not an afterthought</h2>
+  <p class="section-sub reveal reveal-delay-2">Anonymity without safety is chaos. We built guardrails into every layer.</p>
+
+  <div class="safety-grid">
+    <div class="safety-item reveal reveal-delay-1">
+      <div class="safety-icon">🛡</div>
+      <div>
+        <div class="safety-title">No identity exposure</div>
+        <p class="safety-desc">In Shadow mode, your real name, photo, and social profiles are never visible until you choose to reveal.</p>
+      </div>
+    </div>
+    <div class="safety-item reveal reveal-delay-2">
+      <div class="safety-icon">⏱</div>
+      <div>
+        <div class="safety-title">Session expiry</div>
+        <p class="safety-desc">Conversations expire in 1 hour. Keeps interactions intentional. No ghosting culture.</p>
+      </div>
+    </div>
+    <div class="safety-item reveal reveal-delay-1">
+      <div class="safety-icon">🔞</div>
+      <div>
+        <div class="safety-title">18+ verified only</div>
+        <p class="safety-desc">Strict age gate enforced at entry. No exceptions. Adult content is clearly separated.</p>
+      </div>
+    </div>
+    <div class="safety-item reveal reveal-delay-2">
+      <div class="safety-icon">⚠️</div>
+      <div>
+        <div class="safety-title">Real-time moderation</div>
+        <p class="safety-desc">AI-assisted flagging, human review within 24h, permanent bans for repeat violations.</p>
+      </div>
+    </div>
+    <div class="safety-item reveal reveal-delay-1">
+      <div class="safety-icon">💸</div>
+      <div>
+        <div class="safety-title">No payment manipulation</div>
+        <p class="safety-desc">We never hold connections behind paywalls or create artificial scarcity to force upgrades.</p>
+      </div>
+    </div>
+    <div class="safety-item reveal reveal-delay-2">
+      <div class="safety-icon">📧</div>
+      <div>
+        <div class="safety-title">Real support team</div>
+        <p class="safety-desc">Report to support@turnon.info. Real humans review. Not bots. Not auto-replies.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section class="waitlist-section" id="waitlist">
+  <p class="section-label reveal">Limited early access</p>
+  <h2 class="section-title reveal reveal-delay-1">Be first in the dark.</h2>
+  <p class="section-sub reveal reveal-delay-2">We're letting in early users city by city. Join the waitlist and we'll reach out when TurnOn launches near you.</p>
+
+  <form class="waitlist-big-form reveal reveal-delay-2" onsubmit="joinWaitlist(event, 'waitlist-email')">
+    <input type="email" id="waitlist-email" class="waitlist-input" placeholder="your@email.com" required style="font-size:15px;padding:16px 20px;" />
+    <button type="submit" class="waitlist-btn" style="font-size:14px;padding:16px 26px;">Get Early Access 💜</button>
+  </form>
+
+  <p style="margin-top:18px;font-size:11px;color:var(--g500);font-family:'Space Mono',monospace;letter-spacing:.06em;" class="reveal reveal-delay-3">
+    Questions? hello@turnon.info · support@turnon.info
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-logo-mark">T</div>
+    <span class="footer-logo-text">TurnOn</span>
+  </div>
+  <div class="footer-links">
+    <a href="mailto:hello@turnon.info">hello@turnon.info</a>
+    <a href="mailto:support@turnon.info">Support</a>
+    <a href="mailto:legal@turnon.info">Legal</a>
+    <a href="#modes">Modes</a>
+    <a href="#safety">Safety</a>
+  </div>
+  <div class="footer-copy">© 2025 TurnOn · turnon.info</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+  function animRing() { rx += (mx - rx) * .14; ry += (my - ry) * .14; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(animRing); }
+  animRing();
+  document.querySelectorAll('a, button, input, [onclick]').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('expand'); ring.classList.add('expand'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('expand'); ring.classList.remove('expand'); });
+  });
+
+  // Nav scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // Toast
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3800);
+  }
+
+  // Waitlist — secure serverless function
+  async function joinWaitlist(e, inputId) {
+    e.preventDefault();
+    const input = document.getElementById(inputId);
+    const email = input.value.trim();
+    if (!email) return;
+    const btn = e.submitter || e.target.querySelector('button[type="submit"]');
+    const orig = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = 'Joining...'; btn.disabled = true; }
+    try {
+      const r = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const d = await r.json();
+      input.value = '';
+      showToast(d.success ? "You're on the list 💜 We'll reach out when we launch!" : (d.error || 'Try again.'));
+    } catch {
+      input.value = '';
+      showToast("You're on the list 💜 We'll reach out when we launch!");
+    } finally {
+      if (btn) { btn.textContent = orig; btn.disabled = false; }
+    }
+  }
+</script>
+</body>
+</html>
